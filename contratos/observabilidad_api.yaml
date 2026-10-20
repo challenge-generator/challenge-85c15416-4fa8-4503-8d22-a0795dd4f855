@@ -1,0 +1,257 @@
+openapi: 3.0.0
+info:
+  title: API de Observabilidad con IA
+  description: |
+    API para integrar servicios de IA con sistemas de observabilidad en una plataforma de e-commerce.
+    Permite enviar métricas en tiempo real, recibir detección de anomalías y gestionar alertas.
+    
+    **Requisitos arquitectónicos (ASRs):**
+    - **Latencia p99**: < 100ms para detección de anomalías.
+    - **Disponibilidad**: 99.95% mensual.
+    - **Throughput**: 50,000 solicitudes/segundo en hora pico.
+  version: 1.0.0
+  contact:
+    name: Equipo de Observabilidad
+    email: observabilidad@ecommerce.com
+servers:
+  - url: https://api.observabilidad.ecommerce.com/v1
+    description: Entorno de producción
+  - url: https://staging-api.observabilidad.ecommerce.com/v1
+    description: Entorno de staging
+paths:
+  /detect-anomalies:
+    post:
+      tags:
+        - Anomaly Detection
+      summary: Detecta anomalías en métricas de observabilidad
+      description: |
+        Envía métricas en tiempo real al servicio de IA para detectar anomalías.
+        El servicio retorna un puntaje de anomalía (0.0 a 1.0) y detalles opcionales.
+        
+        **Preguntas guía para el candidato:**
+        - ¿Qué métricas adicionales incluirías en el request para mejorar la precisión?
+        - ¿Cómo estructurarías la respuesta para soportar múltiples modelos de IA?
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnomalyDetectionRequest"
+      responses:
+        "200":
+          description: Respuesta exitosa con puntaje de anomalía
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnomalyDetectionResponse"
+        "400":
+          description: Request inválido (ej: métricas faltantes o formato incorrecto)
+        "401":
+          description: No autorizado (falta API key o token)
+        "408":
+          description: Timeout en la llamada al servicio de IA
+        "500":
+          description: Error interno del servidor
+        "503":
+          description: Servicio no disponible (ej: sobrecarga en el servicio de IA)
+      security:
+        - apiKeyAuth: []
+  
+  /alerts:
+    post:
+      tags:
+        - Alerts
+      summary: Crea una alerta de anomalía
+      description: |
+        Registra una alerta en el sistema de observabilidad cuando se detecta una anomalía.
+        
+        **Preguntas guía para el candidato:**
+        - ¿Qué campos incluirías para clasificar la severidad de la alerta?
+        - ¿Cómo integrarías este endpoint con un sistema de notificaciones (ej: Slack, PagerDuty)?
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AlertRequest"
+      responses:
+        "201":
+          description: Alerta creada exitosamente
+        "400":
+          description: Request inválido
+        "401":
+          description: No autorizado
+    
+    get:
+      tags:
+        - Alerts
+      summary: Lista alertas activas
+      description: |
+        Retorna las alertas activas en el sistema, filtradas por severidad, fecha o servicio.
+        
+        **Preguntas guía para el candidato:**
+        - ¿Qué parámetros de query agregarías para mejorar la usabilidad?
+        - ¿Cómo implementarías paginación en los resultados?
+      parameters:
+        - $ref: "#/components/parameters/severity"
+        - $ref: "#/components/parameters/fromDate"
+        - $ref: "#/components/parameters/toDate"
+      responses:
+        "200":
+          description: Lista de alertas activas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Alert"
+        "401":
+          description: No autorizado
+      security:
+        - apiKeyAuth: []
+components:
+  schemas:
+    AnomalyDetectionRequest:
+      type: object
+      required:
+        - metrics
+      properties:
+        metrics:
+          type: object
+          description: Métricas de observabilidad a analizar
+          example:
+            latency: 120
+            error_rate: 0.05
+            throughput: 45000
+            timestamp: "2024-05-20T15:30:00Z"
+          additionalProperties:
+            type: number
+        service_name:
+          type: string
+          description: Nombre del servicio que genera las métricas (ej: "checkout-service")
+          example: "checkout-service"
+      
+    AnomalyDetectionResponse:
+      type: object
+      required:
+        - anomaly_score
+      properties:
+        anomaly_score:
+          type: number
+          format: float
+          description: Puntaje de anomalía (0.0 a 1.0). Valores cercanos a 1 indican mayor probabilidad de anomalía.
+          example: 0.85
+        details:
+          type: object
+          description: Detalles adicionales del análisis (ej: contribución de cada métrica al puntaje)
+          example:
+            latency_contribution: 0.6
+            error_rate_contribution: 0.25
+        model_version:
+          type: string
+          description: Versión del modelo de IA utilizado
+          example: "v1.2.0"
+      
+    AlertRequest:
+      type: object
+      required:
+        - severity
+        - message
+        - service_name
+      properties:
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+          description: Severidad de la alerta
+          example: "high"
+        message:
+          type: string
+          description: Descripción de la alerta
+          example: "Alta latencia en checkout-service (120ms)"
+        service_name:
+          type: string
+          description: Nombre del servicio afectado
+          example: "checkout-service"
+        anomaly_score:
+          type: number
+          format: float
+          description: Puntaje de anomalía asociado
+          example: 0.85
+        metrics:
+          type: object
+          description: Métricas relevantes en el momento de la alerta
+          example:
+            latency: 120
+            error_rate: 0.05
+      
+    Alert:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Identificador único de la alerta
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+          description: Severidad de la alerta
+          example: "high"
+        message:
+          type: string
+          description: Descripción de la alerta
+          example: "Alta latencia en checkout-service (120ms)"
+        service_name:
+          type: string
+          description: Nombre del servicio afectado
+          example: "checkout-service"
+        status:
+          type: string
+          enum: [open, acknowledged, resolved]
+          description: Estado de la alerta
+          example: "open"
+        created_at:
+          type: string
+          format: date-time
+          description: Fecha y hora de creación de la alerta
+          example: "2024-05-20T15:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Fecha y hora de la última actualización
+          example: "2024-05-20T15:35:00Z"
+  
+  parameters:
+    severity:
+      name: severity
+      in: query
+      description: Filtra alertas por severidad
+      required: false
+      schema:
+        type: string
+        enum: [low, medium, high, critical]
+    
+    fromDate:
+      name: from_date
+      in: query
+      description: Filtra alertas creadas después de esta fecha (formato ISO 8601)
+      required: false
+      schema:
+        type: string
+        format: date-time
+    
+    toDate:
+      name: to_date
+      in: query
+      description: Filtra alertas creadas antes de esta fecha (formato ISO 8601)
+      required: false
+      schema:
+        type: string
+        format: date-time
+  
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+      description: API key para autenticación en la API de observabilidad"

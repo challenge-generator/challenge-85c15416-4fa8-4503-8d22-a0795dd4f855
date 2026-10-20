@@ -1,0 +1,30 @@
+# Dependencias para el spike de integración con servicios de IA para observabilidad
+# Versiones reales según disponibilidad en PyPI al momento de generación
+
+requests>=2.31.0
+# requests es la librería estándar para realizar HTTP requests en Python
+# Versión mínima 2.31.0 para soporte completo de TLS 1.3 y mejor manejo de conexiones
+
+boto3>=1.34.0
+# SDK de AWS para Python, necesario para integrar servicios como CloudWatch, Lambda o Sagemaker
+# Versión mínima 1.34.0 para compatibilidad con las últimas características de AWS
+
+python-dotenv>=1.0.0
+# Librería para cargar variables de entorno desde .env, útil para configuraciones locales
+# Versión mínima 1.0.0 para soporte estable
+
+mermaid-cli>=0.5.1
+# CLI para generar diagramas Mermaid, útil si se necesita generar diagramas desde scripts
+# Versión mínima 0.5.1 para compatibilidad con sintaxis C4
+
+# Dependencias opcionales para extensiones futuras
+# pandas>=2.0.0  # Para procesamiento de datos si se requiere análisis local
+# numpy>=1.24.0   # Dependencia de pandas y otras librerías de análisis
+
+# Nota: El spike es autocontenido y solo depende de estas librerías.
+# No se importan módulos fuera de poc/ para mantener el aislamiento.
+# Para ejecutar el spike:
+# 1. Crear un entorno virtual: python -m venv venv
+# 2. Activar el entorno: source venv/bin/activate (Linux/Mac) o venv\Scripts\activate (Windows)
+# 3. Instalar dependencias: pip install -r requirements.txt
+# 4. Ejecutar el spike: python spike_integracion_ia.py

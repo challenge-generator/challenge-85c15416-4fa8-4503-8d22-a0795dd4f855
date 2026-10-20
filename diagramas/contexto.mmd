@@ -1,0 +1,40 @@
+c4Context
+    title Diagrama de Contexto - Plataforma de E-commerce con Observabilidad Mejorada
+
+    Person(usuario, "Usuario Final", "Cliente que interactúa con la plataforma de e-commerce")
+    Person(equipo_ops, "Equipo de Operaciones", "Equipo responsable de monitorear y mantener la plataforma")
+
+    System_Ext(aws, "AWS Cloud", "Proveedor de infraestructura y servicios en la nube")
+    System_Ext(servicio_ia, "Servicio de IA para Observabilidad", "Servicio de IA para detección de anomalías y alertas inteligentes")
+    System_Ext(prometheus, "Prometheus", "Sistema de monitoreo para métricas")
+    System_Ext(grafana, "Grafana", "Herramienta de visualización de datos")
+    System_Ext(cloudwatch, "Amazon CloudWatch", "Servicio de monitoreo y logs")
+
+    System(plataforma_ecommerce, "Plataforma de E-commerce", "Plataforma principal que procesa pedidos y transacciones")
+
+    Rel(usuario, plataforma_ecommerce, "Realiza pedidos y consultas")
+    Rel(plataforma_ecommerce, cloudwatch, "Envía logs y métricas")
+    Rel(plataforma_ecommerce, prometheus, "Expone métricas de rendimiento")
+    Rel(prometheus, grafana, "Proporciona datos para dashboards")
+    Rel(cloudwatch, grafana, "Proporciona logs para visualización")
+    Rel(equipo_ops, grafana, "Monitorea dashboards y alertas")
+    Rel(servicio_ia, equipo_ops, "Genera alertas inteligentes")
+
+    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")
+
+    title Preguntas Guía para Vistas Adicionales
+    =========================================
+    1. **Vista de Contenedores**: 
+       - ¿Qué contenedores componen la plataforma de e-commerce y cómo se comunican?
+       - ¿Dónde se ejecuta el servicio de IA (como un contenedor independiente, sidecar, o integrado en otro servicio)?
+       - ¿Cómo se integran CloudWatch, Prometheus y Grafana con la plataforma?
+
+    2. **Vista de Componentes**:
+       - ¿Qué componentes internos tiene cada contenedor (ej. API Gateway, microservicios, bases de datos)?
+       - ¿Cómo fluyen los datos desde la plataforma hasta el servicio de IA?
+       - ¿Qué contratos definen las interacciones entre componentes (ej. APIs, eventos, colas)?
+
+    3. **Vista de Despliegue**:
+       - ¿Cómo se despliega la plataforma en AWS?
+       - ¿Qué zonas de disponibilidad y regiones se utilizan para garantizar alta disponibilidad?
+       - ¿Cómo se despliega el servicio de IA (ej. en la misma VPC, en otra región, como SaaS externo)?
